@@ -1,0 +1,9 @@
+items:
+- monitor
+- system unit
+- printer
+items_quantity: 3
+items_price:
+  monitor: 50€-200€
+  system unit: 150€-600€
+  printer: 300€-3500€

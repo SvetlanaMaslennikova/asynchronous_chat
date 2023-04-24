@@ -1,0 +1,25 @@
+{
+    "orders": [
+        {
+            "item": "monitor",
+            "quantity": "3",
+            "price": "18000",
+            "buyer": "Иванов И.И.",
+            "date": "10.04.2023"
+        },
+        {
+            "item": "system unit",
+            "quantity": "5",
+            "price": "100000",
+            "buyer": "Петров П.П.",
+            "date": "13.04.2023"
+        },
+        {
+            "item": "printer",
+            "quantity": "2",
+            "price": "13000",
+            "buyer": "Пилюлькин А.Л.",
+            "date": "17.04.2023"
+        }
+    ]
+}
