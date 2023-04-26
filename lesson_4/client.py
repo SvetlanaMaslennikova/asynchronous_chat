@@ -30,7 +30,7 @@ def make_json_byte_presence():
             "status": "Yep, I am here"
         }
     }
-    return json.dumps(presence).encode('utf-8')
+    return json.dumps(presence).encode('unicode_escape')
 
 
 def get_args(args):
