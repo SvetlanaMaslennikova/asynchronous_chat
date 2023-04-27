@@ -2,10 +2,12 @@ from socket import *
 import time
 import json
 import sys
+from log.client_log_config import client_logger
 
 
 def socket_init():
     client_socket = socket(AF_INET, SOCK_STREAM)
+    client_logger.info('init ok')
     return client_socket
 
 
@@ -15,9 +17,11 @@ def socket_connect(client_socket, address, port):
     presence = make_json_byte_presence()
     client_socket.send(presence)
 
-    response = client_socket.recv(1024)
+    response = client_socket.recv(1024).decode('unicode_escape')
     client_socket.close()
-    return response.decode('unicode_escape')
+
+    client_logger.info(f'connect {address=} {port=} send={presence}')
+    return response
 
 
 def make_json_byte_presence():
@@ -34,30 +38,27 @@ def make_json_byte_presence():
 
 
 def get_args(args):
-    address = 'localhost'
-    try:
-        address = str(args[1])
-    except Exception:
-        print('No address value. Address set to "localhost"')
+    import argparse
 
-    port = 7777
-    try:
-        port = int(args[2])
-    except Exception:
-        print('No port value. Port set to "7777"')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('address', type=str, default='', help="address to connect")
+    parser.add_argument('port', nargs='?', type=int, default=7777, help="port to connect")
+    result = parser.parse_args(args)
 
-    return address, port
+    return result.address, result.port
 
 
 def main():
     args = sys.argv
-    address, port = get_args(args)
-    print(f'{address=} {port=}')
+    address, port = get_args(args[1:])
 
     client_socket = socket_init()
     server_response = socket_connect(client_socket, address, port)
-    print(f'{server_response=}')
+    client_logger.info(f'{server_response=}')
 
 
 if __name__ == '__main__':
-   main()
+    try:
+        main()
+    except Exception:
+        client_logger.critical(f'Failed to connect to server')

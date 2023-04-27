@@ -2,11 +2,13 @@ from socket import *
 import time
 import sys
 import json
+from log.server_log_config import server_logger
 
 
 def socket_init(address, port):
     s = socket(AF_INET, SOCK_STREAM)
     s.bind((address, port))
+    server_logger.info(f'init {address=} {port=}')
     return s
 
 
@@ -27,8 +29,7 @@ def decode_message(raw):
         client_message = raw.decode('unicode_escape')
         return json.loads(client_message)
     except Exception:
-        print('Failed to decode message')
-    return None
+        server_logger.error(f'failed to decode message: {raw}')
 
 
 def server_accept(s):
@@ -36,40 +37,24 @@ def server_accept(s):
         client, client_address = s.accept()
         client_message = decode_message(client.recv(1024))
         answer = get_answer(client_message['action'])
-        print(f'{client_message=}\n{answer=}')
-        client.send(json.dumps(answer).encode('utf-8'))
+        server_logger.info(f'{client_message=}; {answer=}')
+        client.send(json.dumps(answer).encode('unicode_escape'))
         client.close()
 
 
-def get_address(args):
-    address = 'localhost'
-    if len(args) > 1:
-        for i in range(len(args)):
-            try:
-                if args[i] == '-a':
-                    address = str(args[i + 1])
-            except Exception:
-                print('Failed to change address. Port is set to "localhost"')
-    return address
+def get_args(args):
+    import argparse
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', type=str, default='', help="socket address")
+    parser.add_argument('-p', type=int, default=7777, help="socket port")
+    result = parser.parse_args(args)
 
-def get_port(args):
-    port = 7777
-    if len(args) > 1:
-        for i in range(len(args)):
-            try:
-                if args[i] == '-p':
-                    port = int(args[i + 1])
-            except Exception:
-                print('Failed to change port. Port is set to "7777"')
-    return port
+    return result.a, result.p
 
 
 def main():
-    args = sys.argv
-    socket_address = get_address(args)
-    socket_port = get_port(args)
-
+    socket_address, socket_port = get_args(sys.argv[1:])
     server_socket = socket_init(socket_address, socket_port)
     server_accept(server_socket)
 
@@ -77,5 +62,7 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+    except KeyboardInterrupt:
+        server_logger.info('stopped by user')
     except Exception:
-        print('Failed to start server')
+        server_logger.critical('failed to start server')
